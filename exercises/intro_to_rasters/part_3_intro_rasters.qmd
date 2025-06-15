@@ -83,8 +83,8 @@ reference system (crs), class, extent, and range of values correspond to
 the day in which lilac leaf out was predicted to occur in `2018`.
 
 ```{r, echo=TRUE, warnings=FALSE}
-class(lilacModel_r)
-lilacModel_r
+
+
 ```
 
 We'll go over three approaches for mapping this raster.
@@ -98,7 +98,7 @@ function can produce some decent looking maps, but not as nice as
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Plot the raster
-plot(lilacModel_r)
+
 ```
 
 The color palette can changed using the `col` option. The default is
@@ -108,7 +108,7 @@ like better? (e.g., check out other palettes in `viridis` by typing
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Continuous prediction using a different color palette
-plot(lilacModel_r, col = rev(viridis::viridis(50)))
+
 ```
 
 Raster data can be depicted in bins by specifying "interval" for the
@@ -118,8 +118,7 @@ map.
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Binned predictions 
-plot(lilacModel_r, type="interval", breaks = 8, col = rev(viridis::viridis(8)))
-# The legend falls off the map!
+
 ```
 
 You can also classify the bins yourself using the `classify()` function.
@@ -130,9 +129,9 @@ impacts the map.
 # How should you define your bins?
 classes <- seq(0, 230, 20)
 # Now classify the raster
-lilacModel_r2 <- classify(lilacModel_r, classes)
+# lilacModel_r2 <- classify(lilacModel_r, classes)
 # Plot the results as before, except add `type="classes"` to the function
-plot(lilacModel_r2, type="classes", col = rev(viridis::viridis(length(classes))))
+# plot(lilacModel_r2, type="classes", col = rev(viridis::viridis(length(classes))))
 ```
 
 ------------------------------------
@@ -141,8 +140,7 @@ __Question 1.__ How does predicted lilac leaf out vary
 across the contiguous U.S. (CONUS)? Any ideas what may explain these
 patterns?
 
-Answer: Leaf out occurs earlier in southern latitudes because warmer
-temperatures there drive faster development.
+Answer: 
 
 ------------------------------------
 
@@ -179,10 +177,7 @@ First, convert the raster into a data frame using `as.data.frame()` in
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Convert raster data to a data frame 
-lilacModel_df <- lilacModel_r %>%
-  as.data.frame(xy = TRUE) %>%
-  rename("leaf_doy" = layer)
-head(lilacModel_df)
+
 ```
 
 Next, we create a data frame that specifies the month for each day of
@@ -213,8 +208,7 @@ its structure. To do this, use `left_join()` from the `dplyr` package.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Join month labels to lilac predictions
-lilacModel_df <- left_join(lilacModel_df, factors_df, by = "leaf_doy") 
-head(lilacModel_df)
+
 ```
 
 Next, we create some custom labels for the plots, and define a pretty
@@ -235,8 +229,8 @@ Finally, the `lilacModel_df` data frame can be plotted using
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Create a map using ggplot2
-ggplot() + 
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) 
+
+
 ```
 
 This map looks okay but can definitely be improved. For example, we
@@ -246,10 +240,7 @@ titles.
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Create a map using ggplot2
-ggplot() + 
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) +
-  scale_fill_manual(name = "Predicted First\nLeaf Out", label = labs, values = pal) +
-  ggtitle("Month of Predicted First Leaf Out in Lilac in 2018") 
+
 ```
 
 Now customize the map theme. If you're producing multiple plots, it's
@@ -276,11 +267,7 @@ Apply the custom theme to the plot.
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Create a map using ggplot2
-ggplot() + 
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) +
-  scale_fill_manual(name = "Predicted First\nLeaf Out", label = labs, values = pal) +  
-  ggtitle("Month of Predicted First Leaf Out in Lilac in 2018") +
-  my_theme # Our custom theme
+
 ```
 
 ------------------------------------
@@ -322,8 +309,9 @@ first column.
 ```{r, echo=TRUE, warnings=FALSE}
 # US states feature
 states <- st_read(here("data", "states.shp"))
+
 # Plot the first data column
-plot(states[1])
+
 ```
 
 ------------------------------------
@@ -332,14 +320,7 @@ __Question 2.__ What is the class and geometry type of
 `states`? Describe two other differences between `states` and
 `lilacModel_r`.
 
-Answer: the class is both `sf` and `data.frame`. The `sf` portion
-contains geographic information such as geometry, extent, and CRS,
-whereas the data frame has associated data, such as state names and
-abbreviations. In contrast, `lilcModel_r` is raster data contained in a
-`SpatRaster` object. The raster data are gridded and cover the entire
-CONUS, whereas the sf data are a vector of state boundaries. The two
-datasets are similar in that they have a CRS, a geographic extent, and
-spatial information.
+Answer: 
 
 ------------------------------------
 
@@ -351,14 +332,14 @@ CRS of `states`.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # CRS of states
-crs(states)
+
 ```
 
 CRS of `lilacModel_r`.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # CRS of lilacModel_r
-crs(lilacModel_r)
+
 ```
 
 Change the CRS of states to match the raster data using `st_transform`.
@@ -366,8 +347,7 @@ Check out the results.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Transform coordinates of states
-states <- st_transform(states, crs(lilacModel_r))
-crs(states)
+
 ```
 
 Next, use `st_crop()` to crop your states feature to the same extent as
@@ -376,9 +356,8 @@ skip the `st_transform()` step and run this code?
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Crop to CONUS
-states_c <- st_crop(states, lilacModel_r)
-# Plot the result
-plot(states_c[1])
+# Name it `states_c`
+
 ```
 
 ------------------------------------
@@ -388,8 +367,8 @@ to obtaining data only for CONUS? Hint: remove rows with undesired
 states (note that Puerto Rico \[PR\] is in the data).
 
 ```{r, echo=TRUE, warnings=FALSE}
-states_c2 <- filter(states, !stusps %in% c("AK", "HI", "PR"))
-plot(states_c2[1])
+
+
 ```
 
 ------------------------------------
@@ -398,13 +377,8 @@ Finally, use `geom_sf()` to add an `sf` object to a plot - i.e., the
 states feature.
 
 ```{r, fig.height = 5, fig.width=9.5}
-# Add an 'sf' object to them map
-ggplot() + 
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) +
-  geom_sf(data = states_c, fill = NA) +
-  scale_fill_manual(name = "Predicted First\nLeaf Out", label = labs, values = pal) +
-  ggtitle("Month of Predicted First Leaf Out in Lilac in 2018") +
-  my_theme
+# Add an 'sf' object to the map
+
 ```
 
 ------------------------------------
@@ -412,8 +386,7 @@ ggplot() +
 __Question 3.__ What happens when you don't enter `NA`
 for the fill option for the `states_c` feature? Why?
 
-Answer: the states features covers up the raster data because it's
-multi-polygon data. The default fill color is gray.
+Answer:
 
 ------------------------------------
 
@@ -422,8 +395,7 @@ You could just continue to use fill = `NA`, or convert the geometry of
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Convert geometry from polygon to multilinestring 
-states_c %>%   
-  st_cast("MULTILINESTRING")  
+
 ```
 
 You can add labels to your map using the `geom_sf_text()` or
@@ -432,13 +404,8 @@ selecting "stusps" as the `label` in the `aes()` function.
 
 ```{r, fig.height = 5, fig.width=9.5, message=FALSE, warning=FALSE}
 # Add labels to the states feature
-ggplot() + 
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) +
-  geom_sf(data = states_c, fill = NA) +
-  geom_sf_text(data = states_c, aes(label = stusps), size = 2) +
-  scale_fill_manual(name = "Predicted First\nLeaf Out", label = labs, values = pal) +
-  ggtitle("Month of Predicted First Leaf Out in Lilac in 2018") +
-  my_theme
+
+
 ```
 
 #### __ggplot2: `geom_raster()`__
@@ -459,29 +426,21 @@ Look at both rasters and notice the data formats.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Original raster (numeric data - days of the year)
-lilacModel_r
+
 ```
 
 ```{r, echo=TRUE, warnings=FALSE}
 # New raster (categorical data - months of the year)
-lilacModel_r2
+
 ```
 
 Create the same map as before but instead use `geom_spatraster()` with
-your categorical raster instead of `geom_raster()`. Name it `conus_mod`.
+your categorical raster instead of `geom_raster()`.  Name it `conus_mod`.
 
 ```{r, fig.height = 5, fig.width=9.5, message=FALSE, warning=FALSE}
 # Plot produced using "geom_spatraster"
-conus_mod <- ggplot() +
-  geom_spatraster(data = lilacModel_r2, aes(fill = leaf_month))  +
-  geom_sf(data = states_c, fill = NA) +
-  geom_sf_text(data = states_c, aes(label = stusps), size = 2) +
-  scale_fill_manual(name = "Predicted First\nLeaf Out", 
-                    label = labs, values = pal, na.value = "white") +
-  ggtitle("Month of Predicted First Leaf Out in Lilac in 2018") +
-  my_theme
+#conus_mod <- ggplot() + ?
 
-conus_mod
 ```
 
 Save your map using `ggsave()` and see how it looks. If you're not happy
@@ -490,8 +449,8 @@ with it, adjust the image dimensions of change the plot theme (i.e.,
 
 ```{r, message=FALSE, warning=FALSE}
 # Change the object name if needed
-ggsave(conus_mod, filename = here("plots", "Lilac_leaf_out_model_2018.png"), 
-       dpi = 300, units = c('in'), width = 10, height = 6)
+# ggsave(conus_mod, filename = here("plots", "Lilac_leaf_out_model_2018.png"), 
+#        dpi = 300, units = c('in'), width = 10, height = 6)
 ```
 
 ------------------------------------
@@ -512,7 +471,7 @@ lilacObs_df <- read.csv(here("data", "lilac_2018_obs.csv"))
 Take a look at the data dimensions. How many observations are there?
 
 ```{r, echo=TRUE, warnings=FALSE}
-dim(lilacObs_df)
+
 ```
 
 There are 77 unique sites in the dataset. The goal is to add the
@@ -539,7 +498,7 @@ lilacObs_df <- lilacObs_df %>%
 Take a look at the first several rows of data.
 
 ```{r, echo=TRUE, warnings=FALSE}
-head(lilacObs_df)
+
 ```
 
 For plotting purposes, we convert the phenometric data to a simple
@@ -550,8 +509,7 @@ also define the CRS, which should be the same as our other objects.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Convert data frame to a simple feature
-lilacObs_sf <- lilacObs_df %>%
-   st_as_sf(coords = c("longitude", "latitude"), crs = crs(states))
+
 ```
 
 We'll save the file for use in the next exercise. The extension `.shp`
@@ -560,20 +518,20 @@ are \<=10 characters long.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Shorten names
-names(lilacObs_sf) <- c("leaf_doy", "leaf_month", "geometry")
-st_write(lilacObs_sf, here("data", "lilac_2018_obs.shp"), append = TRUE)
+# names(lilacObs_sf) <- c("leaf_doy", "leaf_month", "geometry")
+# st_write(lilacObs_sf, here("data", "lilac_2018_obs.shp"), append = TRUE)
 ```
 
 Compare the geometry of `lilacObs_sf` and `states`.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Lilac observations feature
-lilacObs_sf$geometry
+
 ```
 
 ```{r, echo=TRUE, warnings=FALSE}
 # States feature
-states$geometry
+
 ```
 
 ------------------------------------
@@ -581,9 +539,7 @@ states$geometry
 __Question 4.__ How does the geometry of the lilac
 observations (`lilacObs_sf`) differ from the states feature? Why?
 
-Answer: the lilac observations have a POINT geometry whereas the states
-data have a MULTIPOLYGON geometry. Observations are from single
-locations, whereas state boundaries cover many points over the U.S.
+Answer: 
 
 ------------------------------------
 
@@ -595,21 +551,8 @@ column.
 
 ```{r, fig.height = 5, fig.width=9.5}
 # Add sites to the map
-conus_modVobs <- ggplot() + 
-  #geom_spatraster(data = lilacModel_r, aes(fill = leaf_month))  +
-  geom_raster(data = lilacModel_df, aes(x = x, y = y, fill = leaf_month)) +
-  geom_sf(data = states_c, fill=NA) +
-  geom_sf(data = lilacObs_sf, aes(color = leaf_month), 
-          size = 3, show.legend = FALSE) +
-  geom_sf(data = lilacObs_sf, color = "black", 
-          size = 3, shape = 1) + # black outlines around sites
-  scale_fill_manual(name = "Month of First\nLeaf Out", 
-                    label = labs, values = pal, drop = FALSE) +
-  scale_color_manual(name = "Month of First\nLeaf Out", 
-                     label = labs, values = pal, drop = FALSE) +
-  ggtitle("Predicted vs. Observed 1st Leaf Out in Lilac in 2018") +
-  my_theme
-conus_modVobs
+# Can name it 'conus_modVobs'
+
 ```
 
 Save your map using `ggsave()` and see how it looks. If you're not happy
@@ -617,9 +560,9 @@ with it, adjust the image dimensions or change the plot theme (i.e.,
 `my_theme`).
 
 ```{r, echo=TRUE, warnings=FALSE}
-ggsave(conus_modVobs, 
-       filename = here("plots", "Lilac_leaf_out_modelVsObs_2018.png"), 
-       dpi = 300, units = c('in'), width = 10, height = 6)
+#ggsave(conus_modVobs, 
+#       filename = here("plots", "Lilac_leaf_out_modelVsObs_2018.png"), 
+#       dpi = 300, units = c('in'), width = 10, height = 6)
 ```
 
 ------------------------------------
@@ -628,13 +571,7 @@ __Question 5.__ What does your map tell you about
 predicted vs. observed first leaf out in lilac? Can you think of a
 better way to compare the two datasets on a map?
 
-Answer: Our map indicates that predicted dates of lilac leaf out in 2018
-did not always correspond to observed dates. In some cases, the model
-seems to under-predict dates (leaf out too early) whereas in others it
-over-predicts (leaf out too late). Notice that two sites had dates that
-were much later than predicted dates. In this case, perhaps the
-volunteers failed to notice that lilac leaf out had already occurred,
-although other explanations are possible.
+Answer: 
 
 ------------------------------------
 
@@ -649,15 +586,15 @@ ymax), but make sure they're within the U.S.
 ```{r, echo=TRUE, warnings=FALSE}
 # Define your limits
 # Min must go before max (e.g., -180, 180)
-xcoords <- c(-90.5542, -82.3047)
-ycoords <- c(41.6311, 47.5739)
+xcoords <- c()
+ycoords <- c()
 
 # Map for specific region
 # The expand = FALSE ensures that limits are taken exactly as provided
-conus_modVobs +
-  # Define x- and y-limits
-    coord_sf(xlim = xcoords, ylim = ycoords,
-             expand = FALSE) 
+# conus_modVobs +
+#   # Define x- and y-limits
+#     coord_sf(xlim = xcoords, ylim = ycoords,
+#              expand = FALSE) 
 ```
 
 We can also add county boundaries by importing the shapefile in the data
@@ -668,9 +605,7 @@ above for `states`. Also, feel free to convert the geometry to
 ```{r, echo=TRUE, warnings=FALSE}
 # Simple feature ("sf") for US counties
 counties <- st_read(here("data", "counties.shp"))
-counties <- counties %>%
-  st_transform(crs = crs(states)) %>%
-  st_cast("MULTILINESTRING") 
+
 ```
 
 Add the counties to your map below, remove the legend and title, and
@@ -680,16 +615,7 @@ for the next step.
 ```{r, echo=TRUE, warnings=FALSE}
 # Map for region of interest
 # Lilac leaf out observations are added again so boundary lines don't cover them
-zoom_modVobs <- conus_modVobs +
-  geom_sf(data = counties, fill = NA, color = "gray30", size = 0.25) + # Add counties
-  geom_sf(data = lilacObs_sf, aes(color = leaf_month), 
-          size = 3, show.legend = FALSE) +
-  coord_sf(xlim = c(-90.5542, -82.3047), 
-           ylim = c(41.6311, 47.5739),
-           expand = FALSE) + # Take limits exactly as defined
-  theme(legend.position = "none", 
-        plot.title = element_blank())
-zoom_modVobs
+
 ```
 
 Finally, we can combine maps for CONUS and your region of interest using
@@ -700,19 +626,19 @@ the legend is "collected" to ensure it stays in the correct position (on
 right-hand side).
 
 ```{r, fig.height = 9, fig.width=9.5}
-# Combine maps using patchwork (ToDo - this still doesn't run [Roger])
-both_modVobs <- conus_modVobs / zoom_modVobs +
-  plot_layout(guides = "collect", widths = c(2, 1))
-both_modVobs
+# Combine maps using patchwork
+# both_modVobs <- conus_modVobs / zoom_modVobs +
+#   plot_layout(guides = "collect", widths = c(2, 1))
+# both_modVobs
 ```
 
 Save your map and see what you think. Feel free to adjust the theme,
 plot dimensions, or anything else to improve the map.
 
 ```{r, echo=TRUE, warnings=FALSE}
-ggsave(both_modVobs, 
-       filename = here("plots", "Lilac_leaf_out_modelVsObs_2018_2.png"), 
-       dpi = 300, units = c('in'), width = 9, height = 9)
+# ggsave(both_modVobs, 
+#        filename = here("plots", "Lilac_leaf_out_modelVsObs_2018_2.png"), 
+#        dpi = 300, units = c('in'), width = 9, height = 9)
 ```
 
 Note: Other options for combining plots include functions in the
@@ -735,10 +661,7 @@ data column from `layer` to `leaf_doy`.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Extract model predictions for each observation location
-lilacObs_extr <- extract(lilacModel_r, lilacObs_sf) %>%
-  as.data.frame() %>%
-  rename("leaf_doy" = "layer") %>%
-  as.data.frame() 
+
 ```
 
 Next, we can estimate the extent to which the model under-predicts vs.
@@ -747,25 +670,25 @@ over-predicts the date of lilac leaf out by subtracting the
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Differences (in days) between predicted and observed lilac leaf out
-differences <- lilacObs_extr$leaf_doy- lilacObs_sf$leaf_doy
+
 ```
 
 Create a histogram of differences using the `hist()` function in base
 `R.`
 
 ```{r, echo=TRUE, warnings=FALSE}
-hist(differences, breaks = seq(-250, 50, 25))
+# hist(differences, breaks = seq(-250, 50, 25))
 ```
 
 Now calculate some simple summary statistics of the differences.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # Mean
-mean(differences)
+
 # Range
-range(differences)
+
 # Median
-median(differences)
+
 ```
 
 ------------------------------------
@@ -774,12 +697,7 @@ __Question 6.__ What information do your simple
 analyses provide that can't be seen on a map? Overall, what do the
 results say about the performance of the model for lilac leaf out?
 
-Answer: On average, predicted dates were 13.71 days earlier (range =
--237 to 48 days) than observed dates, which suggests that the model is
-under-predicting the date of lilac leaf out. However, the extreme
-outliers are likely due to observer error, as we noted above. The model
-actually seems to perform pretty well if we reduce the impact of
-outliers by calculating the median difference, which is only 1 day.
+Answer: 
 
 ------------------------------------
 
