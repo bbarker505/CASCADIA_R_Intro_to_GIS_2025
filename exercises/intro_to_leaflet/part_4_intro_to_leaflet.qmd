@@ -22,7 +22,7 @@ text-align: center;
 }
 ```
 
-### **Load packages**
+### __Load packages__
 
 ```{r, warning = FALSE, message = FALSE, echo=TRUE}
 library(here) # Project relative paths
@@ -36,19 +36,19 @@ library(leafem) # Addition Leaflet map features
 library(htmltools) # Adding a title to map
 ```
 
-### **Overview**
+### __Overview__
 
 In the previous workshop activity (part 3), we used `ggplot2` to create
 *static* maps of predicted vs. observed dates of lilac leaf out for
 2018. This time, we will use `leaflet` to make our map *interactive*.
 For example, we will add capabilities to zoom, pan, and query the map.
 
-### **Learning objectives**
+### __Learning objectives__
 
 -   Gain additional practice with spatial operations in R\
 -   Create an interactive map in R using the `leaflet` package
 
-### **Introduction**
+### __Introduction__
 
 Leaflet is an [open-source](https://github.com/Leaflet/Leaflet)
 JavaScript library for making interactive web maps. After creating a map
@@ -61,7 +61,7 @@ convenient features for integrating with [Shiny
 applications](https://rstudio.github.io/leaflet/articles/shiny.html),
 allowing you to create interactive online maps.
 
-### **Creating a basic leaflet map**
+### __Creating a basic leaflet map__
 
 Whenever we’re working with `leaflet`, we use the function `leaflet()`
 to initialize a map widget. Running this code will simply load a gray
@@ -112,11 +112,11 @@ below.
 
 ------------------------------------------------------------------------
 
-### **Interactive mapping of lilac leaf out data**
+### __Interactive mapping of lilac leaf out data__
 
 NOTE: Use code from part 3 of the workshop to complete this section.
 
-#### **Import and format data**
+#### __Import and format data__
 
 First, import the raster data for model predictions of lilac leaf out
 for 2018 (raster data: `lilac_2018.tiff`).
@@ -137,7 +137,8 @@ at the object.
 sf_use_s2(FALSE)
 
 # Phenometric data (shapefile produced in previous exercise)
-lilacObs_sf <- st_read(here("data", "lilac_2018_obs.shp"))
+# Call it `lilacObs_sf`
+
 ```
 
 Finally, import the state boundary data (`states.shp`) and crop it to
@@ -145,11 +146,11 @@ the same extent as the raster.
 
 ```{r, echo=TRUE, warnings=FALSE}
 # US states feature
-states <- st_read(here("data", "states.shp"))
+# Call it `states`
+
 
 # Crop to same extent as raster and project 
-states <- states %>% 
-  st_crop(., ext(lilacModel_r))
+
 ```
 
 As with our `ggplot` maps, we'll view months instead of days of the
@@ -160,19 +161,19 @@ factor levels for the spatial data.
 # Data frame needed to create pretty plots
 factors_df <- data.frame(
   # Day and month of year
-  leaf_out_doy = 1:365, 
-  leaf_out_month = ggplot2::cut_interval(1:365, 12)) %>%
+  leaf_doy = 1:365, 
+  leaf_month = ggplot2::cut_interval(1:365, 12)) %>%
   # Bin dates by month and re-format labels to remove brackets, parentheses, etc.
-  mutate(leaf_out_month = format(as.Date(
-    leaf_out_doy, origin = "2018-01-01"), "%b"),
-    leaf_out_month = gsub("\\(|\\]|\\[", "", leaf_out_month)) %>%
-  mutate(leaf_out_month = gsub(",", "-", leaf_out_month))
+  mutate(leaf_month = format(as.Date(
+    leaf_doy, origin = "2018-01-01"), "%b"),
+    leaf_month = gsub("\\(|\\]|\\[", "", leaf_month)) %>%
+  mutate(leaf_month = gsub(",", "-", leaf_month))
 
 # Convert month to a factor so they're in the right order on plots
 # Factor levels are ordered by day of the year
-factors_df$leaf_out_month <- factor(
-  factors_df$leaf_out_month, 
-  levels = unique(factors_df$leaf_out_month[order(factors_df$leaf_out_doy)]))
+factors_df$leaf_month <- factor(
+  factors_df$leaf_month, 
+  levels = unique(factors_df$leaf_month[order(factors_df$leaf_doy)]))
 ```
 
 Next, convert leaf out month data in both datasets to factor format for
@@ -186,7 +187,7 @@ levels(lilacModel_r) <- factors_df
 
 # Define factor levels for the observations (sf object)
 lilacObs_sf$leaf_month <- factor(
-  lilacObs_sf$leaf_month, levels = unique(factors_df$leaf_out_month))
+  lilacObs_sf$leaf_month, levels = unique(factors_df$leaf_month))
 ```
 
 In R, `leaflet` uses several
@@ -200,10 +201,10 @@ each value (day of year) has a color associated with it.
 pal_df <- data.frame(
   pal = c("#1f83b4", "#12a2a8", "#2ca030", "#78a641", "#bcbd22", "#ffbf50",
          "#ffaa0e", "#ff7f0e","#d63a3a", "#c7519c", "#ba43b4", "#8a60b0"), 
-  leaf_out_month = levels(factors_df$leaf_out_month))
+  leaf_month = levels(factors_df$leaf_month))
 
 # Join this data frame with the `factors_df` data frame
-factors_df <- left_join(factors_df, pal_df, by = "leaf_out_month")
+factors_df <- left_join(factors_df, pal_df, by = "leaf_month")
 ```
 
 Next, we create two separate color palettes to accommodate the different
@@ -216,7 +217,7 @@ because we're working with factor data (months).
 # Colors for raster (predicted leaf out)
 palRast <- colorFactor(
   palette = factors_df$pal, 
-  domain = factors_df$leaf_out_doy,
+  domain = factors_df$leaf_doy,
   na.color = "transparent" # Make missing values transparent
 )
 
@@ -228,7 +229,7 @@ palPts <- colorFactor(
 
 ------------------------------------------------------------------------
 
-#### **Create the leaflet map**
+#### __Create the leaflet map__
 
 Raster data are displayed on a leaflet map using
 [`addRasterImage()`](https://www.rdocumentation.org/packages/leaflet/versions/2.2.2/topics/addRasterImage).
@@ -252,7 +253,7 @@ leaflet(options = leafletOptions(minZoom = 3.5)) %>%
 
 The
 [`addImageQuery()`](https://rdrr.io/github/r-spatial/leafem/man/addImageQuery.html)
-function from the `leafem` package allows you to query specific pixels.
+function from the [`leafem`](https://rdrr.io/github/r-spatial/leafem/) package allows you to query specific pixels.
 Note, however, that the tools returns the day of year rather than the
 month.
 
@@ -376,18 +377,18 @@ Here the section is our stylized title.
 ```{r, echo=TRUE, warnings=FALSE}
 # HTML tags for the title style
 tag.map.title <- tags$style(HTML("
-.leaflet-control.map-title {
-left:50%;
-transform: translate(-50%);
-position: fixed !important;
-text-align: center;
-padding-left: 10px;
-padding-right: 10px;
-background: rgba(255,255,255,0.75);
-font-weight: bold;
-font-size: 14px;
-color: #48494B;
-}
+  .leaflet-control.map-title {
+  left:50%;
+  transform: translate(-50%);
+  position: fixed !important;
+  text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  background: rgba(255,255,255,0.75);
+  font-weight: bold;
+  font-size: 14px;
+  color: #48494B;
+  }
 "))
 
 # HTML tag for the title itself
@@ -448,7 +449,7 @@ leaflet(options = leafletOptions(minZoom = 3.5)) %>%
   addMouseCoordinates
 ```
 
-**Practice.** Try making some edits to change the map's appearance. For
+__Practice.__ Try making some edits to change the map's appearance. For
 example, you could make the raster semi-transparent to see the open
 street map, change fonts and colors, change the max map bounds, change
 the marker type for points, or something else!
@@ -459,7 +460,7 @@ the marker type for points, or something else!
 
 ------------------------------------------------------------------------
 
-## **Potentially useful resources about `leaflet`**
+## __Potentially useful resources about `leaflet`__
 
 **Book chapters**\
 - [Making maps in
@@ -489,11 +490,9 @@ R](https://sesync-ci.github.io/leaflet-in-R-lesson/index.htm) by SESYNC\
 journalists](https://learn.r-journalism.com/en/mapping/leaflet_maps/leaflet)
 by J. Tran (2018)\
 
-## **Acknowledgements**
+## __Acknowledgements__
 
 This work was funded by the USDA National Institute of Food and
 Agriculture (NIFA) Agriculture and Food Research Initiative program
 (grant no. 2022-68013-37138) and USDA NIFA Crop and Pest Management
 (CPPM) program (grant no. 2024-70006-43503).
-
-</div>
