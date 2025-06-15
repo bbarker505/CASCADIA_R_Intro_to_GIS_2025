@@ -1,0 +1,124 @@
+---
+title: "Working with Vector Data, Part 1"
+date: today
+author: "Roger Andre"
+fig-cap-location: top
+format:
+  html:
+    page-layout: full
+    code-fold: show
+    theme: flatly
+    embed-resources: true
+execute:
+  enabled: true
+  echo: false
+---
+
+```{css}
+.figure {
+  margin: auto;
+  text-align: center;
+}
+```
+
+### __Load packages__
+
+```{r, warning=FALSE, message=FALSE, echo=TRUE}
+library(here) # Project relative paths
+library(dplyr) # Data wrangling
+library(sf) # Working with spatial features
+library(units) # Support for measurement units in R
+```
+
+### __Introducing the `sf` package__
+
+There are several R packages that provide support for working with spatial features, but in this class, we're going to use `sf`.  `sf` is short for "Simple Features", which are described on Wikipedia as being...
+
+> ...a set of standards that specify a common storage and access model of geographic features made of mostly two-dimensional geometries (point, line, polygon, multi-point, multi-line, etc.) used by geographic databases and geographic information systems. It is formalized by both the Open Geospatial Consortium (OGC) and the International Organization for Standardization (ISO).
+
+`sf` provides a standardized way to encode spatial vector data. It binds to ‘GDAL’ for reading and writing data, to ‘GEOS’ for geometrical operations, and to ‘PROJ’ for projection conversions and datum transformations.  
+
+
+```{r, echo=FALSE, out.width="50%"}
+knitr::include_graphics(here("images", "simple_features_geometry.png"))
+```
+
+_Figure source: [Wikipedia GeoJSON primitives](https://en.wikipedia.org/wiki/GeoJSON)_
+
+----------------------------------
+
+### __Why use `sf`?__
+
+From a practical standpoint, `sf` is convenient because it represents features as a `data.frame` (or `tibble`) with an added geometry column.  This is similar to how most databases implement spatial support, and in fact, the spatial operators in `sf` mostly match those found in systems like PostGIS and Snowflake (for example).  This means that people who are already familiar with spatial operators like `st_buffer`, `st_intersect` etc. from other platforms will find `sf` fairly easy to understand.  It also means that R users can treat spatial data like any other tabular data set and use tools from things like the Tidyverse.
+
+_NOTE: Another extremely convenient feature of having features stored in dataframes is that they can be stored as a single RDS file._
+
+----------------------------------
+
+### __Getting started with `sf`__
+
+A common workflow using `sf` might look like this:
+
+#### __1. Open a spatial data set obtained from a public agency as a shapefile.__
+_NOTE: This data was sourced from the [U.S. Census](https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html) originally._
+
+```{r, echo=TRUE, message=FALSE}
+states <- st_read(here("data", "intro_to_sf", "cb_2018_us_state_20m.shp"))
+```
+
+--------------------------------------
+
+#### __2. Re-project the data into something more suitable for spatial analysis__
+
+```{r, echo=TRUE, message=FALSE}
+albers_states <- st_transform(states, crs = 5070)
+head(albers_states, n=1)
+```
+
+---------------------------------------
+
+#### __3. Obtain some spatial information about the data set__
+
+Print the area of Washington State in sq km
+
+```{r, echo=TRUE, warning=FALSE}
+albers_states %>% 
+  filter(STUSPS == "WA") %>%
+  st_area() %>%
+  set_units(km^2)
+```
+_Wikipedia says that the Area of Washington state is between 172,587 - 184,827 km2, depending on whether we measure just land area, or total area which includes water.  Why the discrepancy?_
+
+--------------------------------
+
+#### __4. View the data__
+
+Make a simple plot with the geometry of Washington state.
+
+```{r, echo=TRUE, fig.height=6, fig.cap="Washington State, Albers projection"}
+albers_wa <- albers_states %>% 
+  filter(STUSPS == "WA")
+
+plot(albers_wa$geometry, graticule = TRUE)
+```
+
+Clearly, the scale of this data is pretty coarse, so it's simplified out a fair amount of land area.  (Something that's good to remember when working with spatial data - spatial resolution matters! )
+
+--------------------------------
+
+### __Practice 1. Open a shapefile in sf and create some simple plots__
+
+**Your turn!**  Using the same shapefile used above, `./../data/intro_to_sf/cb_2018_us_state_20m.shp`, create a couple sample plots visualizing states.  See what happens when:
+
+1. You change the CRS. (Try 5070, 4326 and 3857 EPSG codes)
+2. You don't specify `data$geometry` in the plot.
+3. You select more than one state.
+
+To help you get started, uncomment the code below and replace the `<blank>` values to make it work.
+
+```{r, echo=TRUE, message=FALSE}
+# df <- st_<blank>(here("data", "intro_to_sf", "cb_2018_us_state_20m.shp"), quiet = TRUE)
+# lower_48 <- df %>% <blank>(!STUSPS %in% c("AK", "HI", "PR"))
+# lower_48 <- <blank>(lower_48, 5070)
+# plot(lower_48$geometry)
+```

@@ -1,0 +1,252 @@
+---
+title: "Working with Vector Data, Part 2"
+date: today
+author: "Roger Andre"
+fig-cap-location: top
+format:
+  html:
+    page-layout: full
+    code-fold: show
+    theme: flatly
+    embed-resources: true
+execute:
+  enabled: true
+  echo: false
+---
+
+```{css}
+.figure {
+margin: auto;
+text-align: center;
+}
+```
+
+### __Load packages__
+
+```{r, warning=FALSE, message=FALSE, echo=TRUE}
+library(here) # Project relative paths
+library(dplyr) # Data wrangling
+library(sf) # Working with spatial features
+library(units) # Support for measurement units in R
+```
+
+### __Creating spatial objects in `sf`__
+
+In the previous examples, a shapefile was used as the starting point for our work.  The shapefile format was created by ESRI in the early '90s explicitly for the purpose of storing geographic information and many government agencies adopted it as their default data exchange format.  Another common way of getting geographic information, particularly point data, is in delimited text or CSV format.  `sf` can easily work with geographic data stored in this format, but it needs to be told how to use it.
+
+By default, delimited text has no data types assigned to the fields in it.  R will try to assign sane data types when it reads in a CSV file, but it's unaware that point coordinates are anything other than numeric values.  And as we saw when we opened the U.S. states shapefile before, `sf` uses a specific column, usually named "geometry" to define what the spatial characteristics of a data set are.  So when working with CSV data, or any other data in which the geometry is stored as strings or numerical values, we have to tell `sf` how to create a geometry column from it.
+
+--------------------------------
+
+### __Working with GNIS data in CSV format__
+
+The U.S. Geological Survey developed something called the Geographic Names Information System (GNIS) as the official repository of domestic geographic names.  It's a fascinating tool and you can learn more about it [here](https://www.usgs.gov/tools/geographic-names-information-system-gnis).  One of the ways in which the GNIS can be queried/used is by downloading a CSV version of all domestic placenames from [here](https://www.usgs.gov/us-board-on-geographic-names/download-gnis-data).  We've done that here and extracted from it the features that represent lakes in the state of Washington. The data is in the class's "Data" folder.  Below we will convert this data into `sf` spatial objects and do some additional analysis with it.
+
+--------------------------------------
+
+#### __1. Read the CSV data into R as a data.frame__
+
+```{r, echo=TRUE, warning=FALSE}
+wa_lakes <- read.csv(here("data", "intro_to_sf", "WA_LAKES_GNIS.csv"))
+glimpse(wa_lakes)
+```
+As, we can see, `read.csv()` did what it could to infer what the data types should be for the fields in the data, but we definitely don't have a geometry column. We'll add one now.
+
+---------------------------------------
+
+#### __2. Define what `sf` should use as the source for geometry__
+
+```{r, echo=TRUE, warning=FALSE}
+wa_lakes <- st_as_sf(wa_lakes,                   # create "sf" object class
+                     coords = c("PRIM_LONG_DEC", # "X" field
+                                "PRIM_LAT_DEC"), # "Y" field
+                     crs = 4326)                 # Projection to define
+glimpse(wa_lakes)
+```
+As we can see, a new column named "geometry" has been created which contains geometries of type = "POINT".
+
+_Note: When creating the "geometry" column, the source columns will be removed and converted._
+
+-----------------------------------------
+
+#### __3. Visualize the Data__
+
+With over 3000 features in the data set, it would look pretty cluttered if we displayed all of it at once, but we can display a subset to see if it looks reasonable to us. We'll first extract the state borders again, so we have something to plot over.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+shapefile <- here("data", "intro_to_sf", "cb_2018_us_state_20m.shp")
+wa_state <- st_read(shapefile, quiet = TRUE) %>%   # read in the shapefile
+  filter(STUSPS == "WA") %>%                       # filter to just "WA"
+  st_transform(crs = 4326)                        # reproject on-the-fly to EPSG:4326 
+
+test_lakes <- wa_lakes %>%
+  filter(FEATURE_NAME %in% c("Lake Washington", 
+                             "Moses Lake", 
+                             "Sprague Lake"))
+
+plot(wa_state$geometry)
+plot(test_lakes$geometry, add = TRUE, pch=20, col='blue')
+text(st_coordinates(test_lakes), pos=1, test_lakes$FEATURE_NAME, cex=0.75, col = 'blue')
+```
+
+Using the basic `sf::plot` function as we did above makes it easy see the nature of our data and even create simple plots for reports.  More complex plots are easier to create using other packages such as `ggplot2`.
+
+-----------------------------------------------
+
+### Analyzing spatial relationships
+
+So far we've used `sf` to open a shapefile and to load some CSV data as point features.  We've also visualized them in a very basic fashion, with just enough detail to validate that our data looks as expected.  Now it's time to do something more analytic with the data.  We'll load in an additional data set and use it to answer some questions.
+
+### Using RDS files as a data source
+
+As discussed earlier, one of the nice things about working with `sf` is that spatial data can be saved in RDS format and reused later.  Doing this preserves the data types and spatial geometry definitions.  We'll be using the "gnis_pop_place.RDS" file contained in the class's "Data" folder to load in a set of GNIS data points that represents populated places.
+
+```{r, echo=TRUE, warning=FALSE}
+pop_places <- readRDS(here("data", "intro_to_sf", "gnis_pop_place.RDS"))
+glimpse(pop_places)
+```
+
+----------------------------------------
+
+### Answering a few spatial questions
+
+#### __1. How far is it from Seattle to Spokane?__
+
+```{r, echo=TRUE, warning=FALSE}
+seattle <- filter(pop_places, FEATURE_NAME == "Seattle" & STATE_ALPHA == "WA")
+spokane <- filter(pop_places, FEATURE_NAME == "Spokane" & STATE_ALPHA == "WA")
+
+# Use st_distance function to calculate distance between 2 points
+st_distance(seattle, spokane) %>%
+  units::set_units("miles")
+```
+
+_NOTE: `st_distance` will automatically calculate great circle distances when it detects that lat, lon coordinates are used._
+
+---------------------------------
+
+#### 2. __How many reservoirs are within 55 km of Sprague, WA?__
+
+Now we're going to do something a bit more complex.  We're going to use the `st_buffer` function to create a new geometry that is a 110 km diameter circle around the town of Sprague, WA. We're then going to use that circle as the "net" to catch any Reservoir points that fall inside it.
+
+```{r, echo=TRUE, warning=FALSE}
+# Create a point for town of Sprague
+sprague <- filter(pop_places, 
+                  FEATURE_NAME == "Sprague" & 
+                    STATE_ALPHA == "WA" &
+                    COUNTY_NAME == "Lincoln")
+
+# Put everything in the same CRS, Albers equal area, EPSG:5070
+sprague_albers <- st_transform(sprague, 5070)
+wa_lakes_albers <- st_transform(wa_lakes, 5070)
+pop_places_albers <- st_transform(pop_places, 5070)
+
+# Create a buffer around Town of Sprague that has a radius of 55 km
+sprague_55km_buffer <- st_buffer(sprague_albers, 55000)
+
+# Explore use of st_intersects (returns true/false list of )
+within_55km_rsv <- wa_lakes_albers[unlist(st_intersects(sprague_55km_buffer, wa_lakes_albers)),] %>%
+  select(FEATURE_NAME, COUNTY_NAME, FEATURE_CLASS) %>%
+  filter(FEATURE_CLASS == "Reservoir")
+
+View(within_55km_rsv)
+```
+
+Fair bit to unpack in there, but the key command is `st_intersects` which in this case is telling us all of the Reservoir points that are within the 55km buffer ring.
+
+--------------------------------------
+
+#### __3. Plot our results__
+
+We can see that there are no Reservoirs in Whitman County that are within 55km of the town of Sprague.  At this point we're probably at the limit of what we want to use the `sf::plot` function for.  It still does what we need it to do, but it's starting to get very busy and verbose.
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, out.width="100%"}
+# Plot something of mild interest
+counties <- st_read(here("data", "counties.shp"), quiet = TRUE) %>%
+  filter(stusps == "WA" & name %in% c("Adams", "Spokane", "Lincoln", "Whitman")) %>%
+  select(name, contyfp) %>%
+  st_transform(crs = 5070)
+
+plot(counties$geometry, col = "lightgrey")
+plot(sprague_55km_buffer$geometry, border = "red", add = TRUE)
+st_centroid(counties) %>% st_coordinates() %>% text(pos=3, counties$name, cex=0.85)
+plot(sprague_albers$geometry, add = TRUE, pch=20)
+text(st_coordinates(sprague_albers), pos=1, sprague_albers$FEATURE_NAME, cex=0.75)
+plot(within_55km_rsv$geometry, col = "blue", pch=20, add = TRUE)
+```
+
+-------------------------------
+
+#### __4. Other ways to do it?__
+
+We used `st_intersects` above to find all the points in the buffer, but could we have used something else?  Well yes, we could also have used `st_intsersection` instead...
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+within_55km_rsv_intersection <- st_intersection(wa_lakes_albers, sprague_55km_buffer$geometry) %>%
+  select(FEATURE_NAME, COUNTY_NAME, FEATURE_CLASS) %>%
+  filter(FEATURE_CLASS == "Reservoir")
+
+within_55km_rsv_intersection
+```
+
+...but notice that I specified only the `sprague_55km_buffer$geometry`?  That's because `st_intersection` returns an actual new geometry which is the intersection of the 2 feature sets.  That's easier to see if I take 2 multipolygon feature sets and use `st_intersection` on them.
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+county_buffer_intersection <- st_intersection(sprague_55km_buffer, counties)
+glimpse(county_buffer_intersection)
+```
+
+What we got was a true intersection of the `sprague_55km_buffer` and `counties` data sets, with all attributes retained from each set.  And the geometry is also an intersection of the 2 data sets.  
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE, out.width="100%"}
+plot(counties$geometry, col = "lightgrey")
+plot(county_buffer_intersection$geometry, border = "red", col = "pink", add = TRUE)
+```
+
+_Something else to remember is that `st_intersection` is generally slower than `st_intersects`, since it has to do more work to actually process geometry._
+
+---------------------
+
+### __Practice 1. Create sf features from coordinates. Calculate the distance between Paris, FR and Moscow RU.__  
+Uncomment and use the partially filled-in example below to help you get started.
+
+```{r, echo=TRUE, message=FALSE}
+cities <- read.table(header = TRUE, text = "
+city  country  lat  lon
+Paris  France  48.856667 2.352222
+Moscow  Russia 55.755833 37.617222
+Yekaterinburg Russia 56.835556 60.612778
+")
+
+# Create an sf object with geometry
+cities_sf <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
+
+# Calculate the distance in KM
+st_distance(cities_sf[1,], cities_sf[2,]) %>% 
+  units::set_units("km")
+```
+
+------------------------------
+
+### __Practice 2. Create a 2500km buffer around Paris. Plot both the buffer geometry and the city points. Label them.  (Don't forget to reproject)__
+
+```{r, echo=TRUE, message=FALSE}
+# Reproject cities_sf to ESRI:102013
+cities_albers <- st_transform(cities_sf, crs = 'ESRI:102013')
+
+# Create a 2500km buffer around Paris
+paris_buffer <- st_buffer(cities_albers[1,], (2500 * 1000))
+
+# Plot
+plot(paris_buffer$geometry)
+plot(cities_albers$geometry, pch=20, add = TRUE)
+text(st_coordinates(cities_albers), pos=1, cities_albers$city, cex=0.75)
+```
+
+------------------------------------
+
+### __Practice 3. Prove that that Moscow is within the paris_buffer using `st_intersects`. Prove that Yekaterinburg is not.__
+
+```{r, echo=TRUE, message=FALSE}
+st_intersects(paris_buffer$geometry, cities_albers, sparse = FALSE)
+```

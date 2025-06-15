@@ -1,0 +1,499 @@
+---
+title: "Mapping Raster and Vector Data, Part 2"
+subtitle: "Introduction to Leaflet"
+date: today
+author: "Brittany Barker"
+fig-cap-location: top
+format:
+  html:
+    page-layout: full
+    code-fold: show
+    theme: flatly
+    embed-resources: true
+execute:
+  enabled: true
+  echo: false
+---
+
+```{css}
+.figure {
+margin: auto;
+text-align: center;
+}
+```
+
+### **Load packages**
+
+```{r, warning = FALSE, message = FALSE, echo=TRUE}
+library(here) # Project relative paths
+library(dplyr) # Data wrangling
+library(sf) # Working with spatial features
+library(terra) # Working with rasters
+library(ggplot2) # For binning data
+library(ggthemes) # # ggthemes_data function
+library(leaflet) # Creating an interactive map
+library(leafem) # Addition Leaflet map features
+library(htmltools) # Adding a title to map
+```
+
+### **Overview**
+
+In the previous workshop activity (part 3), we used `ggplot2` to create
+*static* maps of predicted vs. observed dates of lilac leaf out for
+2018. This time, we will use `leaflet` to make our map *interactive*.
+For example, we will add capabilities to zoom, pan, and query the map.
+
+### **Learning objectives**
+
+-   Gain additional practice with spatial operations in R\
+-   Create an interactive map in R using the `leaflet` package
+
+### **Introduction**
+
+Leaflet is an [open-source](https://github.com/Leaflet/Leaflet)
+JavaScript library for making interactive web maps. After creating a map
+widget, one can layer features onto that map widget to improve its
+display and interactivity.
+
+The [`leaflet`](https://rstudio.github.io/leaflet/) R package allows you
+to create a Leaflet map in R. The package includes powerful and
+convenient features for integrating with [Shiny
+applications](https://rstudio.github.io/leaflet/articles/shiny.html),
+allowing you to create interactive online maps.
+
+### **Creating a basic leaflet map**
+
+Whenever we’re working with `leaflet`, we use the function `leaflet()`
+to initialize a map widget. Running this code will simply load a gray
+panel void of any geographic features.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet()
+```
+
+Before we define our areas of interest (states) and layer on data, we
+can add a "basemap" using the map widget. Basemaps consist of map tiles,
+or individual map sections that join together to form a composite
+picture. We can add a basemap to the map widget using
+[`addTiles()`](https://rstudio.github.io/leaflet/articles/basemaps.html).
+Running this without adjustment will result in map of the entire world.
+
+By default, `addTiles()` generates a basemap using
+[`OpenStreetMap`](https://www.openstreetmap.org/#map=4/38.01/-95.84)
+tiles. There are many other options to choose from. You can use
+`addProviderTiles()` instead of `addTiles()` to pick from among a
+pre-specified set of third-party options, or you can call a tile set
+from a URL by providing a link in `addTiles()`.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet() %>% 
+  addProviderTiles("OpenStreetMap")
+```
+
+Our data are for the conterminous U.S. (CONUS). We can use the
+[`setMaxBounds()`](https://www.rdocumentation.org/packages/leaflet/versions/2.2.2/topics/setView)
+function in combination with the `minZoom` option to restrict the map to
+CONUS only. Many more
+[options()](https://rstudio.github.io/leaflet/articles/widget.html) for
+the map widget are available.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  addProviderTiles("OpenStreetMap")
+```
+
+Test out using different options and/or map tiles in the code chunk
+below.
+
+```{r, echo=TRUE, warnings=FALSE}
+
+```
+
+------------------------------------------------------------------------
+
+### **Interactive mapping of lilac leaf out data**
+
+NOTE: Use code from part 3 of the workshop to complete this section.
+
+#### **Import and format data**
+
+First, import the raster data for model predictions of lilac leaf out
+for 2018 (raster data: `lilac_2018.tiff`).
+
+```{r, echo=TRUE, warnings=FALSE}
+# Raster data: model predictions for lilac leaf out
+# Use the 'rast()' function to import the raster
+lilacModel_r <- rast(here("data", "lilac_2018_model.tiff"))
+```
+
+Next, import phenometric data for observed lilac leaf out dates for 2018
+using `st_read()`. We converted the for formatted data to a shapefile in
+the previous exercise. Turn off the "s2" before importing. Take a look
+at the object.
+
+```{r, echo=TRUE, warnings=FALSE}
+# Switch off "s2"
+sf_use_s2(FALSE)
+
+# Phenometric data (shapefile produced in previous exercise)
+lilacObs_sf <- st_read(here("data", "lilac_2018_obs.shp"))
+```
+
+Finally, import the state boundary data (`states.shp`) and crop it to
+the same extent as the raster.
+
+```{r, echo=TRUE, warnings=FALSE}
+# US states feature
+states <- st_read(here("data", "states.shp"))
+
+# Crop to same extent as raster and project 
+states <- states %>% 
+  st_crop(., ext(lilacModel_r))
+```
+
+As with our `ggplot` maps, we'll view months instead of days of the
+year. The code below creates a data frame to make it easier to define
+factor levels for the spatial data.
+
+```{r, echo=TRUE, warnings=FALSE}
+# Data frame needed to create pretty plots
+factors_df <- data.frame(
+  # Day and month of year
+  leaf_out_doy = 1:365, 
+  leaf_out_month = ggplot2::cut_interval(1:365, 12)) %>%
+  # Bin dates by month and re-format labels to remove brackets, parentheses, etc.
+  mutate(leaf_out_month = format(as.Date(
+    leaf_out_doy, origin = "2018-01-01"), "%b"),
+    leaf_out_month = gsub("\\(|\\]|\\[", "", leaf_out_month)) %>%
+  mutate(leaf_out_month = gsub(",", "-", leaf_out_month))
+
+# Convert month to a factor so they're in the right order on plots
+# Factor levels are ordered by day of the year
+factors_df$leaf_out_month <- factor(
+  factors_df$leaf_out_month, 
+  levels = unique(factors_df$leaf_out_month[order(factors_df$leaf_out_doy)]))
+```
+
+Next, convert leaf out month data in both datasets to factor format for
+plotting. As before, use the `factors_df` data frame to define factor
+levels.
+
+```{r, echo=TRUE, warnings=FALSE}
+# Define factor levels for the raster
+lilacModel_r <- lilacModel_r
+levels(lilacModel_r) <- factors_df
+
+# Define factor levels for the observations (sf object)
+lilacObs_sf$leaf_month <- factor(
+  lilacObs_sf$leaf_month, levels = unique(factors_df$leaf_out_month))
+```
+
+In R, `leaflet` uses several
+[`color*()`](https://rstudio.github.io/leaflet/articles/colors.html)
+functions to map variables to color. First we need to define the palette
+and then join that information to the `factors_df` data frame so that
+each value (day of year) has a color associated with it.
+
+```{r, echo=TRUE, warnings=FALSE}
+# Create a data frame that defines a color for each month of the year
+pal_df <- data.frame(
+  pal = c("#1f83b4", "#12a2a8", "#2ca030", "#78a641", "#bcbd22", "#ffbf50",
+         "#ffaa0e", "#ff7f0e","#d63a3a", "#c7519c", "#ba43b4", "#8a60b0"), 
+  leaf_out_month = levels(factors_df$leaf_out_month))
+
+# Join this data frame with the `factors_df` data frame
+factors_df <- left_join(factors_df, pal_df, by = "leaf_out_month")
+```
+
+Next, we create two separate color palettes to accommodate the different
+data formats for predicted vs. observed leaf out dates (raster vs.
+vector, respectively). Both palettes are creating using
+[`colorFactor()`](https://campus.datacamp.com/courses/interactive-maps-with-leaflet-in-r/plotting-points?ex=15)
+because we're working with factor data (months).
+
+```{r, echo=TRUE}
+# Colors for raster (predicted leaf out)
+palRast <- colorFactor(
+  palette = factors_df$pal, 
+  domain = factors_df$leaf_out_doy,
+  na.color = "transparent" # Make missing values transparent
+)
+
+# Colors for points = sf object (observed leaf out)
+palPts <- colorFactor(
+  palette = unique(factors_df$pal),
+  domain = lilacObs_sf$leaf_month)
+```
+
+------------------------------------------------------------------------
+
+#### **Create the leaflet map**
+
+Raster data are displayed on a leaflet map using
+[`addRasterImage()`](https://www.rdocumentation.org/packages/leaflet/versions/2.2.2/topics/addRasterImage).
+The function accepts both `SpatRaster` and `RasterLayer` (from the old
+`raster` package) objects. The `layerId` is a unique identifier for a
+specific layer. The `group` allows interaction with other map elements
+(added below).
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  # Tiles
+  addProviderTiles("OpenStreetMap") %>% 
+  # Add raster (model predictions of leaf out)
+  addRasterImage(lilacModel_r, 
+                 project = TRUE, 
+                 colors = palRast,
+                 layerId = "Predicted",
+                 group = "Predicted")
+```
+
+The
+[`addImageQuery()`](https://rdrr.io/github/r-spatial/leafem/man/addImageQuery.html)
+function from the `leafem` package allows you to query specific pixels.
+Note, however, that the tools returns the day of year rather than the
+month.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  # Tiles
+  addProviderTiles("OpenStreetMap") %>% 
+  # Add raster (model predictions of leaf out)
+  addRasterImage(lilacModel_r, 
+                 project = TRUE, 
+                 colors = palRast,
+                 group = "Predicted",
+                 layerId = "Predicted") %>% 
+  # Raster query tool
+  addImageQuery(lilacModel_r, 
+                project = TRUE, 
+                group = "Predicted",
+                layerId = "Predicted")
+```
+
+Next, we can add our vector data (`sf` objects), including the states
+feature and the points where lilac leaf out was observed. The
+`addPolylines()` is used for states (boundaries only) whereas
+`addCircleMarkers()` is used for the points. Both functions are part of
+the
+[`addControl()`](https://www.rdocumentation.org/packages/leaflet/versions/2.2.2/topics/addControl)
+collection in `leaflet`. The color palette created above is used to fill
+each point accordingly.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  # Tiles
+  addProviderTiles("OpenStreetMap") %>%
+  # Add raster (model predictions of leaf out)
+  addRasterImage(lilacModel_r, 
+                 project = TRUE, 
+                 colors = palRast,
+                 group = "Predicted", 
+                 layerId = "Predicted") %>%
+  # Raster query tool
+  addImageQuery(lilacModel_r, 
+                project = TRUE, 
+                layerId = "Predicted", 
+                group = "Predicted") %>%
+  # Add state lines
+  addPolylines(data = states, 
+               opacity = 0.25, 
+               color = "black", 
+               weight = 1.25) %>%
+  # Add points (observations of leaf out)
+  addCircleMarkers(
+    data = lilacObs_sf,               
+    color = "black",
+    fillColor = ~palPts(leaf_month),
+    fillOpacity = 1,
+    radius = 3,
+    weight = 0.5) 
+```
+
+The map isn't very informative without a legend. The
+[`addLegend()`](https://rstudio.github.io/leaflet/reference/addLegend.html)
+function `leaflet` can solve this problem. The
+[`addLeafLegends`](https://rdrr.io/cran/leaflegend/man/addLeafLegends.html)
+package has additional functions for customizing legends. The raster and
+point data have the same color scale, so only a single legend is needed.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  # Tiles
+  addProviderTiles("OpenStreetMap") %>%
+  # Add raster (model predictions of leaf out)
+  addRasterImage(lilacModel_r, 
+                 project = TRUE, 
+                 colors = palRast,
+                 group = "Predicted", 
+                 layerId = "Predicted") %>%
+  # Raster query tool
+  addImageQuery(lilacModel_r, 
+                project = TRUE, 
+                layerId = "Predicted", 
+                group = "Predicted") %>%
+  # Add state lines
+  addPolylines(data = states, 
+               opacity = 0.25, 
+               color = "black", 
+               weight = 1.25) %>%
+  # Add points (observations of leaf out)
+  addCircleMarkers(
+    data = lilacObs_sf,               
+    color = "black",
+    fillColor = ~palPts(leaf_month),
+    fillOpacity = 1,
+    radius = 3,
+    weight = 0.5) %>% 
+  # Add legend
+  addLegend(
+    data = lilacObs_sf,
+    pal = palPts,
+    values = ~leaf_month,
+    position = "bottomleft",
+    title = "Month",
+    opacity = 0.9
+  ) 
+```
+
+The map looks pretty good now, but what about a title? This would make
+it even more informative. Below are some HTML tags, which are building
+blocks that define the structure and content of a webpage. The style
+element (`tags$style`) tell `leaflet` exactly how the title should be
+displayed, including its placement on the map, size, padding, colors,
+etc. The
+
+<div>
+
+tag (`tags$div`) defines a division or a section in an HTML document.
+Here the section is our stylized title.
+
+```{r, echo=TRUE, warnings=FALSE}
+# HTML tags for the title style
+tag.map.title <- tags$style(HTML("
+.leaflet-control.map-title {
+left:50%;
+transform: translate(-50%);
+position: fixed !important;
+text-align: center;
+padding-left: 10px;
+padding-right: 10px;
+background: rgba(255,255,255,0.75);
+font-weight: bold;
+font-size: 14px;
+color: #48494B;
+}
+"))
+
+# HTML tag for the title itself
+title <- tags$div(
+  tag.map.title, HTML("Predicted vs. Observed Leaf Out in Lilac in 2018")
+)
+```
+
+Below is the entire block of code, including the use of `addControl()`
+to insert the title. Additionally, the
+[`addMouseCoordinates()`](https://www.rdocumentation.org/packages/mapview/versions/2.5.0/topics/addMouseCoordinates)
+function is used to display the coordinates as you move the cursor over
+the map.
+
+```{r, echo=TRUE, warnings=FALSE}
+leaflet(options = leafletOptions(minZoom = 3.5)) %>% 
+  setMaxBounds(lng1 = -126, lat1 = 25, lng2 = -66.5, lat2 = 49.5) %>% 
+  # Tiles
+  addProviderTiles("OpenStreetMap") %>%
+  # Add raster (model predictions of leaf out)
+  addRasterImage(lilacModel_r, 
+                 project = TRUE, 
+                 colors = palRast,
+                 group = "Predicted", 
+                 layerId = "Predicted") %>%
+  # Raster query tool
+  addImageQuery(lilacModel_r, 
+                project = TRUE, 
+                layerId = "Predicted", 
+                group = "Predicted") %>%
+  # Add state lines
+  addPolylines(data = states, 
+               opacity = 0.25, 
+               color = "black", 
+               weight = 1.25) %>%
+  # Add points (observations of leaf out)
+  addCircleMarkers(
+    data = lilacObs_sf,               
+    color = "black",
+    fillColor = ~palPts(leaf_month),
+    fillOpacity = 1,
+    radius = 3,
+    weight = 0.5) %>%
+  # Add legend
+  addLegend(
+    data = lilacObs_sf,
+    pal = palPts,
+    values = ~leaf_month,
+    position = "bottomleft",
+    title = "Month",
+    opacity = 0.9
+  ) %>% 
+  # Map title
+  addControl(title, 
+             position = "topright", 
+             className = "map-title") %>% 
+  # Shows map coordinates as mouse is moved over map
+  addMouseCoordinates
+```
+
+**Practice.** Try making some edits to change the map's appearance. For
+example, you could make the raster semi-transparent to see the open
+street map, change fonts and colors, change the max map bounds, change
+the marker type for points, or something else!
+
+```{r}
+
+```
+
+------------------------------------------------------------------------
+
+## **Potentially useful resources about `leaflet`**
+
+**Book chapters**\
+- [Making maps in
+R](https://bookdown.org/nicohahn/making_maps_with_r5/docs/leaflet.html)
+by N. Hahn\
+- [Maps, R Not the Best
+Practices](https://bookdown.org/voevodin_nv/R_Not_the_Best_Practices/maps.html)
+by N. Voevodin (2020)\
+
+**Tutorials/vignettes**\
+- [Introduction to
+leaflet](https://rstudio.github.io/leaflet/articles/leaflet.html) by J.
+Cheng\
+- [Leaflet package in
+R](https://www.datacamp.com/courses/interactive-maps-with-leaflet-in-r)
+by geeksforgeeks (2024)\
+- [Data Scientist as Cartographer: An Introduction to Making Interactive
+Maps in R with
+Leaflet](https://library.virginia.edu/data/articles/data-scientist-as-cartographer-an-introduction-to-making-interactive-maps-in-r-with-leaflet)
+by J. Goldstein-Greenwood (2020)\
+- [Interactive maps with leaflet in
+R](https://r-charts.com/spatial/interactive-maps-leaflet/) by R Charts
+(2025)\
+- [Leaflet in
+R](https://sesync-ci.github.io/leaflet-in-R-lesson/index.htm) by SESYNC\
+- [Interactive maps with leaflet - R for
+journalists](https://learn.r-journalism.com/en/mapping/leaflet_maps/leaflet)
+by J. Tran (2018)\
+
+## **Acknowledgements**
+
+This work was funded by the USDA National Institute of Food and
+Agriculture (NIFA) Agriculture and Food Research Initiative program
+(grant no. 2022-68013-37138) and USDA NIFA Crop and Pest Management
+(CPPM) program (grant no. 2024-70006-43503).
+
+</div>

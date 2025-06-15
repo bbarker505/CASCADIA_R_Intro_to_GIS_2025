@@ -1,0 +1,323 @@
+---
+title: "Introduction to GIS and mapping in R"
+subtitle: "Cascadia R Conference 2024"
+author: "Brittany Barker & Roger Andre"
+date: 6/21/24
+format: revealjs
+embed-resources: true
+---
+
+---
+format: 
+  revealjs:
+    slide-number: c/t
+    width: 1600
+    height: 900
+    theme: simple
+    echo: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## About us: Brittany Barker
+
+::: columns
+::: {.column width="40%"}
+```{r, echo = FALSE, out.width = "500px"}
+knitr::include_graphics("../images/intro_me.jpg")
+```
+:::
+
+::: {.column width="60%"}
+**Current position**\
+- Asst. Research Professor, OSU\
+<br/> **Research interests**\
+- Modeling, ecology, biogeography, conservation\
+<br/> **Hobbies**\
+- Running, hiking, biking, moving!\
+- Gardening, native habitat restoration\
+- Artistic and creative endeavors\
+<br/> **R Community**\
+- Co-organize "Aggregate" meetups\
+- Co-organize Cascadia R Conference
+:::
+:::
+
+## About us: Roger André
+
+::: columns
+::: {.column width="40%"}
+```{r, echo = FALSE, out.width = "250px"}
+knitr::include_graphics("../images/roger/roger.jpg")
+```
+:::
+
+::: {.column width="60%"}
+#### Current position
+
+  - `Business Analysis Manager, T-Mobile`
+
+#### Interests
+
+  - `Open Source GIS, R Data Science`
+
+#### Hobbies
+
+  - `Fly fishing, woodworking`
+
+#### Previous Talks
+
+  - [`Using RStudio for Geospatial Analysis`](https://lagerratrobe.quarto.pub/rstudio-for-practical-geospatial-analysis/#/title-slide)
+  - [`Thoughts on Parallelization in R`](https://lagerratrobe.quarto.pub/thoughts-on-paralleliaztion-in-r/#/title-slide)
+  - [`Using GDAL for Data Processing and Analysis`](https://upload.osgeo.org/gdal/presentations/OpenSource_Weds_Andre_CUGOS.pdf)
+:::
+:::
+
+## Outline of workshop
+
+-   \~15 min: introductory lecture\
+-   Part 1: Introduction to sf package
+-   Part 2: Mapping raster and vector data
+
+```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Zia Ahmed"}
+knitr::include_graphics("../images/Geospatial_R.png")
+```
+
+## Elements of Geographic Information System (GIS)
+
+```{r, out.width = "650px", echo=FALSE, fig.align="center", fig.cap="Source: Mierzejowska & Pomyko 2019"}
+knitr::include_graphics("../images/GIS.png")
+```
+
+## Why use R for GIS?
+
+::: columns
+::: {.column width="50%"}
+-   **Advantages**
+
+    -   It's *FREE*!!!
+
+    -   Automate and repeat tasks (faster)
+
+    -   Easier to make reproducible workflow
+
+    -   Extend functionality
+
+```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Aleks Buczkowski 2023"}
+knitr::include_graphics("../images/Why-is-ArcGIS-So-Expensive.png")
+```
+:::
+
+::: {.column width="50%"}
+-   **Disadvantages**
+
+    -   Steep learning curve
+
+    -   Sometimes harder to quickly look at data
+
+```{r, out.width = "400px", echo=FALSE, fig.align="left"}
+knitr::include_graphics("../images/programmer_meme.jpg")
+```
+:::
+:::
+
+## Types of spatial features: vector
+
+-   Uses points and/or line segments to identify locations on earth
+
+```{r, out.width = "650px", echo=FALSE, fig.align="center", fig.cap="Different types of vectors (Source: Jakub Nowosad)"}
+knitr::include_graphics("../images/vector.png")
+```
+
+## R packages for working with vectors
+
+-   `sf` (simple features)
+-   More convenient and flexible than older `sp` package\
+-   Integration with the tidyverse\
+-   Emphasis on the spatial geometry of real world objects
+
+::: columns
+::: {.column width="50%"}
+```{r, echo = FALSE, out.width = "1000px", fig.align="center-aligned"}
+knitr::include_graphics("../images/sf-relations.png")
+```
+:::
+
+::: {.column width="50%"}
+```{r, echo = FALSE, out.width = "650px", fig.align="center-aligned", fig.cap = "Source: Jakub Nowosad"}
+knitr::include_graphics("../images/sf-area.png")
+```
+:::
+:::
+
+## Types of spatial features: raster
+
+-   Gridded data where each pixel (cell) is associated with a specific
+    geographical location\
+-   Can be numerical or categorical
+
+::: columns
+::: {.column width="50%"}
+```{r, out.width = "650px", echo=FALSE, fig.align="left"}
+knitr::include_graphics("../images/forest_cover.jpg")
+```
+:::
+
+::: {.column width="50%"}
+```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Jakub Nowosad"}
+knitr::include_graphics("../images/cont_vs_cat.png")
+```
+:::
+:::
+
+## Vector vs. raster
+
+::: columns
+::: {.column width="50%"}
+Multi-polygon: provinces of Spain
+
+```{r, out.width = "1000px", echo=FALSE, fig.cap="Source: Paula Moraga"}
+knitr::include_graphics("../images/pol_v_rast1.png")
+```
+:::
+
+::: {.column width="50%"}
+Raster: average annual temperature in Spain
+
+```{r, echo = FALSE, out.width = "1000px"}
+knitr::include_graphics("../images/pol_v_rast2.png")
+```
+:::
+:::
+
+## Types of spatial features: raster
+
+-   Multi-layered rasters often called raster stacks
+    -   Time (day of year, etc.)
+    -   Different variables
+
+::: columns
+::: {.column width="50%"}
+```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Edzer Pebesama"}
+knitr::include_graphics("../images/cube1.png")
+```
+:::
+
+::: {.column width="50%"}
+```{r, echo = FALSE, out.width = "600px"}
+knitr::include_graphics("../images/layers.png")
+```
+:::
+:::
+
+## R packages for working with rasters
+
+::: columns
+::: {.column width="50%"}
+-   `terra` (successor of `raster`)
+
+    -   Create, read/write, manipulate rasters
+
+    -   Extensive documentation
+
+```{r, echo = FALSE, out.width = "400px", fig.align="center-aligned"}
+knitr::include_graphics("../images/terra.png")
+```
+:::
+
+::: {.column width="50%"}
+-   `tidyterra`
+
+    -   Tidyverse methods for `terra` objects
+
+    -   Provides `geoms` for plotting in `ggplot2`
+
+```{r, echo = FALSE, out.width = "350px", fig.align="center-aligned"}
+knitr::include_graphics("../images/tidyterra.png")
+```
+:::
+:::
+
+## R packages for working with rasters
+
+-   `stars`(spatiotemporal arrays)
+
+    -   Has a few abilities lacking in `terra` (e.g., non-regular
+        shapes)
+
+    -   Many `sf` functions work with stars objects Not as well
+        documented
+
+```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Edzer Pebesama"}
+knitr::include_graphics("../images/stars_raster_data.png")
+```
+
+## Layering
+
+-   Oftentimes we want to make maps with multiple spatial features
+
+```{r, out.width = "650px", echo=FALSE, fig.align="center"}
+knitr::include_graphics("../images/layering.png")
+```
+
+## In comes `ggplot`
+
+-   Uses layered approach to create graphics (The Grammar of Graphics)
+-   You provide the data, tell `ggplot2` how to map variables to
+    aesthetics, what graphical elements to use, and it takes care of the
+    details
+
+```{r, echo = FALSE, out.width = "800px", fig.cap="Source: R for the rest of us"}
+knitr::include_graphics("../images/grammar-of-graphics.png")
+```
+
+## In comes `ggplot`
+
+-   `ggplot2` can plot all sorts of data, including rasters and vectors
+
+```{r, echo = FALSE, out.width = "800px",  fig.align="left", fig.cap="Source: www.icertglobal.com"}
+knitr::include_graphics("../images/ggplot_plots.png")
+```
+
+## Example: a ggplot combining raster and vectors
+
+-   Map of the phenology and potential distribution for invasive emerald
+    ash borer\
+-   What are the vectors vs. rasters in this map?
+
+::: columns
+::: {.column width="75%"}
+```{r, echo = FALSE, out.width = "1100px"}
+knitr::include_graphics("../images/EAB_map.png")
+```
+:::
+
+::: {.column width="25%"}
+```{r, echo = FALSE, out.width = "250px", fig.cap="Source: Barker et al. (2023) *Front. Insect Sci.*"}
+knitr::include_graphics("../images/emerald-ash-borer-on-leaf.png")
+```
+:::
+:::
+
+## Coordinate reference system (CRS)
+
+-   Coordinate system: X, Y grid upon which data is overlaid\
+-   Units: horizontal & vertical units of grid (e.g., km, miles)\
+-   Datum: defines origin used to place the coordinate system in space\
+-   Projection: equation used to flatten objects to 2D surface
+
+```{r, echo = FALSE, out.width = "700px", fig.align = "left", fig.cap = "Source: Bill Huber, https://www.directionsmag.com"}
+knitr::include_graphics("../images/datum_v_proj.png")
+```
+
+## Why is the CRS important?
+
+-   Framework for precisely measuring locations on earth's surface\
+-   Errors or mistakes occur when using inconsistent CRS\
+-   For example, mismatched features and incorrect distance measurements
+
+```{r, echo = FALSE, out.width = "1000px", fig.align="left", fig.cap = "Source: opennews.org"}
+knitr::include_graphics("../images/us_projections.jpg")
+```
