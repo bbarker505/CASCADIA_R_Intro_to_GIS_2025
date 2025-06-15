@@ -19,6 +19,7 @@ format:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(here)
 ```
 
 ## About us: Brittany Barker
@@ -26,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ::::: columns
 ::: {.column width="40%"}
 ```{r, echo = FALSE, out.width = "500px"}
-knitr::include_graphics("../images/intro_me.jpg")
+knitr::include_graphics(here("images", "intro_me.jpg"))
 ```
 :::
 
@@ -45,42 +46,43 @@ knitr::include_graphics("../images/intro_me.jpg")
 :::
 :::::
 
-## About us: Roger André
+## About us: Carrie Preston
 
-:::::::::::::::::::::::::: columns
+::::: columns
 ::: {.column width="40%"}
-```{r, echo = FALSE, out.width = "250px"}
-knitr::include_graphics("../images/roger/roger.jpg")
+```{r, echo = FALSE, out.width = "500px"}
+knitr::include_graphics(here("images", "Carrie2.jpg"))
 ```
+
 :::
 
-:::::::::::::::::::::::: {.column width="60%"}
-#### Current position
-
--   `Business Analysis Manager, T-Mobile`
-
-#### Interests
-
--   `Open Source GIS, R Data Science`
-
-#### Hobbies
-
--   `Fly fishing, woodworking`
+::: {.column width="60%"}
+**Current position**\
+- Research Associate, OSU\
+<br/> **Research interests**\
+- Entomology, biological control, insect rearing\
+<br/> **Hobbies**\
+- Photography, dungeons and dragons\
+- Gardening\
+- Walking her cats\
+:::
+:::::
 
 ## Outline of workshop
 
--   \~15 min: introductory lecture\
--   Part 1: Introduction to sf package
--   Part 2: Mapping raster and vector data
+-   \~20 min: introductory lecture\
+-   Parts 1-2: Introduction to sf package
+-   Part 3: Mapping raster and vector data (ggplot2)  
+-   Part 4: Mapping raster and vector date (leaflet)  
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Zia Ahmed"}
-knitr::include_graphics("../images/Geospatial_R.png")
+knitr::include_graphics(here("images", "Geospatial_R.png"))
 ```
 
 ## Elements of Geographic Information System (GIS)
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="center", fig.cap="Source: Mierzejowska & Pomyko 2019"}
-knitr::include_graphics("../images/GIS.png")
+knitr::include_graphics(here("images", "GIS.png"))
 ```
 
 ## Why use R for GIS?
@@ -98,7 +100,7 @@ knitr::include_graphics("../images/GIS.png")
     -   Extend functionality
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Aleks Buczkowski 2023"}
-knitr::include_graphics("../images/Why-is-ArcGIS-So-Expensive.png")
+knitr::include_graphics(here("images", "Why-is-ArcGIS-So-Expensive.png"))
 ```
 :::
 
@@ -110,7 +112,7 @@ knitr::include_graphics("../images/Why-is-ArcGIS-So-Expensive.png")
     -   Sometimes harder to quickly look at data
 
 ```{r, out.width = "400px", echo=FALSE, fig.align="left"}
-knitr::include_graphics("../images/programmer_meme.jpg")
+knitr::include_graphics(here("images", "programmer_meme.jpg"))
 ```
 :::
 :::::
@@ -120,7 +122,7 @@ knitr::include_graphics("../images/programmer_meme.jpg")
 -   Uses points and/or line segments to identify locations on earth
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="center", fig.cap="Different types of vectors (Source: Jakub Nowosad)"}
-knitr::include_graphics("../images/vector.png")
+knitr::include_graphics(here("images", "vector.png"))
 ```
 
 ## R packages for working with vectors
@@ -132,14 +134,14 @@ knitr::include_graphics("../images/vector.png")
 
 ::::: columns
 ::: {.column width="50%"}
-```{r, echo = FALSE, out.width = "1000px", fig.align="center-aligned"}
-knitr::include_graphics("../images/sf-relations.png")
+```{r, echo = FALSE, out.width = "1000px", fig.align="center"}
+knitr::include_graphics(here("images", "sf-relations.png"))
 ```
 :::
 
 ::: {.column width="50%"}
-```{r, echo = FALSE, out.width = "650px", fig.align="center-aligned", fig.cap = "Source: Jakub Nowosad"}
-knitr::include_graphics("../images/sf-area.png")
+```{r, echo = FALSE, out.width = "650px", fig.align="center", fig.cap = "Source: Jakub Nowosad"}
+knitr::include_graphics(here("images", "sf-area.png"))
 ```
 :::
 :::::
@@ -153,13 +155,13 @@ knitr::include_graphics("../images/sf-area.png")
 ::::: columns
 ::: {.column width="50%"}
 ```{r, out.width = "650px", echo=FALSE, fig.align="left"}
-knitr::include_graphics("../images/forest_cover.jpg")
+knitr::include_graphics(here("images", "forest_cover.jpg"))
 ```
 :::
 
 ::: {.column width="50%"}
 ```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Jakub Nowosad"}
-knitr::include_graphics("../images/cont_vs_cat.png")
+knitr::include_graphics(here("images", "cont_vs_cat.png"))
 ```
 :::
 :::::
@@ -171,7 +173,7 @@ knitr::include_graphics("../images/cont_vs_cat.png")
 Multi-polygon: provinces of Spain
 
 ```{r, out.width = "1000px", echo=FALSE, fig.cap="Source: Paula Moraga"}
-knitr::include_graphics("../images/pol_v_rast1.png")
+knitr::include_graphics(here("images", "pol_v_rast1.png"))
 ```
 :::
 
@@ -179,7 +181,7 @@ knitr::include_graphics("../images/pol_v_rast1.png")
 Raster: average annual temperature in Spain
 
 ```{r, echo = FALSE, out.width = "1000px"}
-knitr::include_graphics("../images/pol_v_rast2.png")
+knitr::include_graphics(here("images", "pol_v_rast2.png"))
 ```
 :::
 :::::
@@ -193,13 +195,13 @@ knitr::include_graphics("../images/pol_v_rast2.png")
 ::::: columns
 ::: {.column width="50%"}
 ```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Edzer Pebesama"}
-knitr::include_graphics("../images/cube1.png")
+knitr::include_graphics(here("images", "cube1.png"))
 ```
 :::
 
 ::: {.column width="50%"}
 ```{r, echo = FALSE, out.width = "600px"}
-knitr::include_graphics("../images/layers.png")
+knitr::include_graphics(here("images", "layers.png"))
 ```
 :::
 :::::
@@ -214,8 +216,8 @@ knitr::include_graphics("../images/layers.png")
 
     -   Extensive documentation
 
-```{r, echo = FALSE, out.width = "400px", fig.align="center-aligned"}
-knitr::include_graphics("../images/terra.png")
+```{r, echo = FALSE, out.width = "400px", fig.align="center"}
+knitr::include_graphics(here("images", "terra.png"))
 ```
 :::
 
@@ -226,8 +228,8 @@ knitr::include_graphics("../images/terra.png")
 
     -   Provides `geoms` for plotting in `ggplot2`
 
-```{r, echo = FALSE, out.width = "350px", fig.align="center-aligned"}
-knitr::include_graphics("../images/tidyterra.png")
+```{r, echo = FALSE, out.width = "350px", fig.align="center"}
+knitr::include_graphics(here("images", "tidyterra.png"))
 ```
 :::
 :::::
@@ -243,7 +245,7 @@ knitr::include_graphics("../images/tidyterra.png")
         documented
 
 ```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Edzer Pebesama"}
-knitr::include_graphics("../images/stars_raster_data.png")
+knitr::include_graphics(here("images", "stars_raster_data.png"))
 ```
 
 ## Layering
@@ -251,7 +253,7 @@ knitr::include_graphics("../images/stars_raster_data.png")
 -   Oftentimes we want to make maps with multiple spatial features
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="center"}
-knitr::include_graphics("../images/layering.png")
+knitr::include_graphics(here("images", "layering.png"))
 ```
 
 ## In comes `ggplot`
@@ -262,7 +264,7 @@ knitr::include_graphics("../images/layering.png")
     details
 
 ```{r, echo = FALSE, out.width = "800px", fig.cap="Source: R for the rest of us"}
-knitr::include_graphics("../images/grammar-of-graphics.png")
+knitr::include_graphics(here("images", "grammar-of-graphics.png"))
 ```
 
 ## In comes `ggplot`
@@ -270,7 +272,7 @@ knitr::include_graphics("../images/grammar-of-graphics.png")
 -   `ggplot2` can plot all sorts of data, including rasters and vectors
 
 ```{r, echo = FALSE, out.width = "800px",  fig.align="left", fig.cap="Source: www.icertglobal.com"}
-knitr::include_graphics("../images/ggplot_plots.png")
+knitr::include_graphics(here("images", "ggplot_plots.png"))
 ```
 
 ## Example: a ggplot combining raster and vectors
@@ -282,16 +284,25 @@ knitr::include_graphics("../images/ggplot_plots.png")
 ::::: columns
 ::: {.column width="75%"}
 ```{r, echo = FALSE, out.width = "1100px"}
-knitr::include_graphics("../images/EAB_map.png")
+knitr::include_graphics(here("images", "EAB_map.png"))
 ```
 :::
 
 ::: {.column width="25%"}
 ```{r, echo = FALSE, out.width = "250px", fig.cap="Source: Barker et al. (2023) *Front. Insect Sci.*"}
-knitr::include_graphics("../images/emerald-ash-borer-on-leaf.png")
+knitr::include_graphics(here("images", "emerald-ash-borer-on-leaf.png"))
 ```
 :::
 :::::
+
+## Interactive web maps using `leaflet`
+
+-   `ggplot2` creates static maps, whereas `leaflet` creates interactive maps  
+-   Used for maps in web pages, including Shiny web apps  
+
+```{r, echo = FALSE, out.width = "800px",  fig.align="left", fig.cap="Source: https://rstudio.github.io/leaflet/articles/shiny.html"}
+knitr::include_graphics(here("images", "images_shiny3.png"))
+```
 
 ## Coordinate reference system (CRS)
 
@@ -301,7 +312,7 @@ knitr::include_graphics("../images/emerald-ash-borer-on-leaf.png")
 -   Projection: equation used to flatten objects to 2D surface
 
 ```{r, echo = FALSE, out.width = "700px", fig.align = "left", fig.cap = "Source: Bill Huber, https://www.directionsmag.com"}
-knitr::include_graphics("../images/datum_v_proj.png")
+knitr::include_graphics(here("images", "datum_v_proj.png"))
 ```
 
 ## Why is the CRS important?
@@ -311,7 +322,5 @@ knitr::include_graphics("../images/datum_v_proj.png")
 -   For example, mismatched features and incorrect distance measurements
 
 ```{r, echo = FALSE, out.width = "1000px", fig.align="left", fig.cap = "Source: opennews.org"}
-knitr::include_graphics("../images/us_projections.jpg")
+knitr::include_graphics(here("images", "us_projections.jpg"))
 ```
-::::::::::::::::::::::::
-::::::::::::::::::::::::::
