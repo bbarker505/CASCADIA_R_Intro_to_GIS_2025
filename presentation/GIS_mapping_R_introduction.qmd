@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(here)
 ```
 
-## About us: Brittany Barker
+## Your instructors: Brittany Barker
 
 ::::: columns
 ::: {.column width="40%"}
@@ -46,14 +46,13 @@ knitr::include_graphics(here("images", "intro_me.jpg"))
 :::
 :::::
 
-## About us: Carrie Preston
+## Your instructors: Carrie Preston
 
 ::::: columns
 ::: {.column width="40%"}
 ```{r, echo = FALSE, out.width = "500px"}
 knitr::include_graphics(here("images", "Carrie2.jpg"))
 ```
-
 :::
 
 ::: {.column width="60%"}
@@ -62,18 +61,16 @@ knitr::include_graphics(here("images", "Carrie2.jpg"))
 <br/> **Research interests**\
 - Entomology, biological control, insect rearing\
 <br/> **Hobbies**\
-- Photography, dungeons and dragons\
-- Gardening\
-- Walking her cats\
+- Photography, dungeons and dragons, gardening, walking her cats\
 :::
 :::::
 
 ## Outline of workshop
 
--   \~20 min: introductory lecture\
--   Parts 1-2: Introduction to sf package
--   Part 3: Mapping raster and vector data (ggplot2)  
--   Part 4: Mapping raster and vector date (leaflet)  
+-   \~25 min: introductory lecture\
+-   Parts 1-2: Introduction to sf package\
+-   Part 3: Mapping raster and vector data (ggplot2)\
+-   Part 4: Mapping raster and vector date (leaflet)\
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Zia Ahmed"}
 knitr::include_graphics(here("images", "Geospatial_R.png"))
@@ -91,13 +88,10 @@ knitr::include_graphics(here("images", "GIS.png"))
 ::: {.column width="50%"}
 -   **Advantages**
 
-    -   It's *FREE*!!!
-
-    -   Automate and repeat tasks (faster)
-
-    -   Easier to make reproducible workflow
-
-    -   Extend functionality
+    -   It's *FREE*!!!\
+    -   Automate and repeat tasks (faster)\
+    -   Easier to make reproducible workflow\
+    -   Extend functionality\
 
 ```{r, out.width = "650px", echo=FALSE, fig.align="left", fig.cap="Source: Aleks Buczkowski 2023"}
 knitr::include_graphics(here("images", "Why-is-ArcGIS-So-Expensive.png"))
@@ -107,9 +101,8 @@ knitr::include_graphics(here("images", "Why-is-ArcGIS-So-Expensive.png"))
 ::: {.column width="50%"}
 -   **Disadvantages**
 
-    -   Steep learning curve
-
-    -   Sometimes harder to quickly look at data
+    -   Steep learning curve\
+    -   Sometimes harder to quickly look at data\
 
 ```{r, out.width = "400px", echo=FALSE, fig.align="left"}
 knitr::include_graphics(here("images", "programmer_meme.jpg"))
@@ -146,11 +139,18 @@ knitr::include_graphics(here("images", "sf-area.png"))
 :::
 :::::
 
+## Example functions in `sf`
+
+```{r, echo = FALSE, out.width = "1000px"}
+knitr::include_graphics(here("images", "sf_concept_map.png"))
+```
+
 ## Types of spatial features: raster
 
 -   Gridded data where each pixel (cell) is associated with a specific
     geographical location\
--   Can be numerical or categorical
+-   Commonly used to represent spatially continuous data\
+-   Data can also be categorical\
 
 ::::: columns
 ::: {.column width="50%"}
@@ -188,9 +188,9 @@ knitr::include_graphics(here("images", "pol_v_rast2.png"))
 
 ## Types of spatial features: raster
 
--   Multi-layered rasters often called raster stacks
-    -   Time (day of year, etc.)
-    -   Different variables
+-   Multi-layered rasters often called raster stacks\
+    -   Time (day of year, etc.)\
+    -   Different variables\
 
 ::::: columns
 ::: {.column width="50%"}
@@ -210,41 +210,37 @@ knitr::include_graphics(here("images", "layers.png"))
 
 ::::: columns
 ::: {.column width="50%"}
--   `terra` (successor of `raster`)
+-   `terra` (successor of `raster`)\
+    -   Create, read/write, manipulate rasters\
+    -   Can also work with vector data\
+    -   Extensive documentation\
 
-    -   Create, read/write, manipulate rasters
-
-    -   Extensive documentation
-
-```{r, echo = FALSE, out.width = "400px", fig.align="center"}
+```{r, echo = FALSE, out.width = "350px", fig.align="center"}
 knitr::include_graphics(here("images", "terra.png"))
 ```
 :::
 
 ::: {.column width="50%"}
--   `tidyterra`
+-   Hundreds of functions\
+    -   Spatial statistics and modeling\
+    -   Access and extract cell values\
+    -   Plot rasters and vectors\
 
-    -   Tidyverse methods for `terra` objects
-
-    -   Provides `geoms` for plotting in `ggplot2`
-
-```{r, echo = FALSE, out.width = "350px", fig.align="center"}
-knitr::include_graphics(here("images", "tidyterra.png"))
+```{r, echo = FALSE, out.width = "750px", fig.align="center"}
+knitr::include_graphics(here("images", "spatraster.png"))
 ```
 :::
 :::::
 
 ## R packages for working with rasters
 
--   `stars`(spatiotemporal arrays)
-
+-   `stars`(spatiotemporal arrays)\
     -   Has a few abilities lacking in `terra` (e.g., non-regular
-        shapes)
+        shapes)\
+    -   Many `sf` functions work with stars objects\
+    -   Not as well documented\
 
-    -   Many `sf` functions work with stars objects Not as well
-        documented
-
-```{r, echo = FALSE, out.width = "700px", fig.cap="Source: Edzer Pebesama"}
+```{r, echo = FALSE, fig.align = "left", out.width = "800px", fig.cap="Source: Edzer Pebesama"}
 knitr::include_graphics(here("images", "stars_raster_data.png"))
 ```
 
@@ -258,10 +254,10 @@ knitr::include_graphics(here("images", "layering.png"))
 
 ## In comes `ggplot`
 
--   Uses layered approach to create graphics (The Grammar of Graphics)
+-   Uses layered approach to create graphics (The Grammar of Graphics)\
 -   You provide the data, tell `ggplot2` how to map variables to
     aesthetics, what graphical elements to use, and it takes care of the
-    details
+    details\
 
 ```{r, echo = FALSE, out.width = "800px", fig.cap="Source: R for the rest of us"}
 knitr::include_graphics(here("images", "grammar-of-graphics.png"))
@@ -275,11 +271,22 @@ knitr::include_graphics(here("images", "grammar-of-graphics.png"))
 knitr::include_graphics(here("images", "ggplot_plots.png"))
 ```
 
+## `tidyterra`: integrates spatial data with `ggplot`
+
+-   Supports a variety of geospatial formats (vector and raster)\
+-   Leverages `dplyr`-like functions (filtering, summarizing, joining,
+    etc.)\
+-   Provides `geoms` for plotting in `ggplot2`\
+
+```{r, echo = FALSE, out.width = "1000px", fig.align="left", fig.cap="Source: Joachim Schork"}
+knitr::include_graphics(here("images", "tidyterra_dighernan.jpg"))
+```
+
 ## Example: a ggplot combining raster and vectors
 
 -   Map of the phenology and potential distribution for invasive emerald
     ash borer\
--   What are the vectors vs. rasters in this map?
+-   What are the vectors vs. rasters in this map?\
 
 ::::: columns
 ::: {.column width="75%"}
@@ -297,11 +304,11 @@ knitr::include_graphics(here("images", "emerald-ash-borer-on-leaf.png"))
 
 ## Interactive web maps using `leaflet`
 
--   `ggplot2` creates static maps, whereas `leaflet` creates interactive maps  
--   Used for maps in web pages, including Shiny web apps  
+-   Create dynamic and interactive maps using Leaflet JavaScript library\
+-   Used for maps in web pages, including Shiny web apps\
 
-```{r, echo = FALSE, out.width = "800px",  fig.align="left", fig.cap="Source: https://rstudio.github.io/leaflet/articles/shiny.html"}
-knitr::include_graphics(here("images", "images_shiny3.png"))
+```{r, echo = FALSE, out.width = "800px",  fig.align="left", fig.cap="Source: https://i.sstatic.net/O2DAV.gif"}
+knitr::include_graphics(here("images", "leaflet_shiny_quakes.gif"))
 ```
 
 ## Coordinate reference system (CRS)
@@ -309,7 +316,7 @@ knitr::include_graphics(here("images", "images_shiny3.png"))
 -   Coordinate system: X, Y grid upon which data is overlaid\
 -   Units: horizontal & vertical units of grid (e.g., km, miles)\
 -   Datum: defines origin used to place the coordinate system in space\
--   Projection: equation used to flatten objects to 2D surface
+-   Projection: equation used to flatten objects to 2D surface\
 
 ```{r, echo = FALSE, out.width = "700px", fig.align = "left", fig.cap = "Source: Bill Huber, https://www.directionsmag.com"}
 knitr::include_graphics(here("images", "datum_v_proj.png"))
@@ -319,7 +326,7 @@ knitr::include_graphics(here("images", "datum_v_proj.png"))
 
 -   Framework for precisely measuring locations on earth's surface\
 -   Errors or mistakes occur when using inconsistent CRS\
--   For example, mismatched features and incorrect distance measurements
+-   For example, mismatched features and incorrect distance measurements\
 
 ```{r, echo = FALSE, out.width = "1000px", fig.align="left", fig.cap = "Source: opennews.org"}
 knitr::include_graphics(here("images", "us_projections.jpg"))

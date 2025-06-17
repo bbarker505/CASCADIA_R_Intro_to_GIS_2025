@@ -296,11 +296,10 @@ installing them can sometimes be problematic. To avoid troubleshooting,
 I saved USA boundary data as shapefiles. First, we need to use
 `st_use_s2(FALSE)` because `sf` assumes the world is round, and uses
 great circles for straight lines. This will cause issues for cropping
-boundaries to the same extent as our raster data.
+boundaries to the same extent as our raster data. See [here](https://r.geocompx.org/reproj-geo-data) for more information about the S2 spherical geometry engine. 
 
 ```{r, echo=TRUE, warnings=FALSE}
 sf_use_s2(FALSE)
-
 ```
 
 Now import the shapefile using the `st_read()` function and plot the
@@ -761,6 +760,7 @@ resources](https://r-spatial.github.io/sf/) for "sf"\
 Mieno (2024)\
 - [Geospatial workskop](https://datacarpentry.org/lessons/#geospatial)
 by NEON\
+- [Introduction to Spatial Raster Data Using the terra Package](https://rpubs.com/GeospatialEcologist/SpatialRaster) by J. Carrell (2023)\
 
 ## __Acknowledgements__
 
