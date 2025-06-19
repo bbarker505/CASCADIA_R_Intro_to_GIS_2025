@@ -211,18 +211,19 @@ _Something else to remember is that `st_intersection` is generally slower than `
 Uncomment and use the partially filled-in example below to help you get started.
 
 ```{r, echo=TRUE, message=FALSE}
-# cities <- read.table(header = TRUE, text = "
-# city  country  lat  lon
-# Paris  France  48.856667 2.352222
-# Moscow  Russia 55.755833 37.617222
-# Yekaterinburg Russia 56.835556 60.612778
-# ")
+cities <- read.table(header = TRUE, text = "
+city  country  lat  lon
+Paris  France  48.856667 2.352222
+Moscow  Russia 55.755833 37.617222
+Yekaterinburg Russia 56.835556 60.612778
+")
 
 # Create an sf object with geometry
+cities_sf <- st_as_sf(cities, coords = c("lon", "lat"), crs = 4326)
 
 # Calculate the distance in KM
-
-
+st_distance(cities_sf[1,], cities_sf[2,]) %>% 
+  units::set_units("km")
 ```
 
 ------------------------------
@@ -231,14 +232,15 @@ Uncomment and use the partially filled-in example below to help you get started.
 
 ```{r, echo=TRUE, message=FALSE}
 # Reproject cities_sf to ESRI:102013
-
+cities_albers <- st_transform(cities_sf, crs = 'ESRI:102013')
 
 # Create a 2500km buffer around Paris
-
+paris_buffer <- st_buffer(cities_albers[1,], (2500 * 1000))
 
 # Plot
-
-
+plot(paris_buffer$geometry)
+plot(cities_albers$geometry, pch=20, add = TRUE)
+text(st_coordinates(cities_albers), pos=1, cities_albers$city, cex=0.75)
 ```
 
 ------------------------------------
@@ -246,5 +248,5 @@ Uncomment and use the partially filled-in example below to help you get started.
 ### __Practice 3. Prove that that Moscow is within the paris_buffer using `st_intersects`. Prove that Yekaterinburg is not.__
 
 ```{r, echo=TRUE, message=FALSE}
-
+st_intersects(paris_buffer$geometry, cities_albers, sparse = FALSE)
 ```
